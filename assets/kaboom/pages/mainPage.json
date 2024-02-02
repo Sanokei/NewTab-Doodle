@@ -1,0 +1,24 @@
+{
+    "darkmode": 
+    {   
+        "sprite":"cube",
+        "pos":[0,0]
+    },
+    "searchbar":
+    {
+        "sprite":"searchbar",
+        "pos":[120, 80]
+    },
+    "savebutton":
+    {
+        "sprite":"cube",
+        "pos":[150, 80],
+        "tags":["save"]
+    },
+    "loadbutton":
+    {
+        "sprite":"cube",
+        "pos":[250, 80],
+        "tags":["load"]
+    }
+}   
