@@ -7,10 +7,10 @@ const kb = kaboom({
     height:window.screen.height,
 });
 
-// paths
-const assetPath = "../assets/kaboom/"; // just for uniformity
+/* paths */
+const assetPath = "../assets/kaboom/";
 const pagesPath = "../assets/kaboom/pages/"
-
+// kb load root
 const loadSpritePath = () => kb.loadRoot("../assets/img/");
 const loadDefaultPath = () => kb.loadRoot("/");
 
@@ -46,8 +46,6 @@ class AssetLoader {
 class Page {
 	
 	constructor(pageName) {
-		if(pages[pageName])
-			console.error(`${pageName} already exists.`);
 		if(pageName == "" || !pageName)
 			console.error("pageName cannot be of type null or empty");
 		this.pageName = pageName;
@@ -63,9 +61,8 @@ class Page {
 		return new Promise((resolve, reject) => {
 			fetch(`${pagesPath}${pageName}.json`)
 				.then(response => {
-					if (!response.ok) {
+					if (!response.ok)
 						throw new Error("HTTP error " + response.status);
-					}
 					return response.json();
 				})
 				.then(data => {
@@ -81,17 +78,7 @@ class Page {
 		
 	}
 
-	instantiateIndividual(goName,gameobject) {
-		this.gameobjects[goName] =
-			kb.make([
-				kb.sprite(gameobject["sprite"]),   // sprite() component makes it render as a sprite
-				kb.pos(gameobject["pos"]),     // pos() component gives it position, also enables movement
-				kb.area(),
-				...gameobject["tags"] ?? "",
-				kb.rotate(gameobject["rotation"] ?? 0),        // rotate() component gives it rotation
-				kb.anchor(gameobject["anchor"] ?? "center"), // anchor() component defines the pivot point (defaults to "topleft")
-			]);
-	}
+	/*Instantiate*/
 
 	// Assumes data is already loaded.
 	instantiatePage(data = this.data, pageName = this.pageName) {
@@ -104,16 +91,35 @@ class Page {
 		}
 	
 		for (const [k, v] of Object.entries(data)) {
-			this.instantiateIndividual(k,v);
+			this.instantiate(k,v);
 		}
 		return this;
 	}
 
-	initializeAllGameObj(){
+	instantiate(goName,gameobject) {
+		this.gameobjects[goName] =
+			kb.make([
+				kb.sprite(gameobject["sprite"]),   // sprite() component makes it render as a sprite
+				kb.pos(gameobject["pos"]),     // pos() component gives it position, also enables movement
+				kb.area(),
+				...gameobject["tags"] ?? "",
+				kb.rotate(gameobject["rotation"] ?? 0),        // rotate() component gives it rotation
+				kb.anchor(gameobject["anchor"] ?? "center"), // anchor() component defines the pivot point (defaults to "topleft")
+			]);
+	}
+
+	/*Initialize*/
+
+	initializeAllGameObj() {
 		for (const [k, v] of Object.entries(this.gameobjects)) {
-			kb.add(v);
+			this.initialize(k);
 		}
 	}
+
+	initialize(goName) {
+		kb.add(this.gameobjects[goName]);
+	}
+
 }
 
 // Loads page by name
@@ -145,9 +151,10 @@ function loadPage(pageName,args = {}) {
 
 function saveJSONToStorage(pageJSON, pageName = 'save') {
 	return new Promise((resolve, reject) => {
-		chrome.storage.local.set({pageName: pageJSON }, () => {;
+		chrome.storage.local.set({'save': pageJSON }, () => {
 			if (chrome.runtime.lastError)
                 reject(chrome.runtime.lastError);
+			console.log("Save", pageName, pageJSON);
 			resolve();
 		});
 	});
@@ -158,43 +165,53 @@ function loadJSONFromStorage(pageName = 'save') {
 		chrome.storage.local.get(pageName, (result) => {
 			if (chrome.runtime.lastError)
                 reject(chrome.runtime.lastError);
+			console.log("Load",pageName , result.save);
 			resolve(result.save);
 		});
 			
 	});
 }
-// Load assets then invoke main
-AssetLoader.load()
-	.then(() => {
-		main();
-	}) 
-	.catch(error => {
-		console.error("Error Occured while loading Assets.",error);
+
+function gameobjectsToJSON(gos) {
+	gos.forEach(elm => {
+		console.log(elm);
+		console.log(elm.id);
 	});
+}
 
 kb.scene("test", ({args}) => {
+	console.log(args);
 	args.forEach(elm => {
 		console.log(elm);
 		kb.add(elm);
 	});
 });
 
-function main(){
-	loadPage("mainPage")
-		.then(() => {
-			kb.onClick("save", (btn) => {
-				var allObj = kb.get("*", { recursive: true});
-				saveJSONToStorage(pageJSON);
-			});
-			kb.onClick("load", (btn) => {
-				loadJSONFromStorage()
-					.then((data) => {
-						
-					})
-					.catch(error => {
-						console.error(`An Error occured while trying to load page from storage`,error);
-					});
-				// kb.go("test",{args: kb.get("*", { recursive: true})});
+function main() {
+	kb.onClick("save", (btn) => {
+		var allObj = kb.get("*");
+		gameobjectsToJSON(allObj);
+		// saveJSONToStorage(allObj);
+	});
+	kb.onClick("load", (btn) => {
+		loadJSONFromStorage()
+			.then((data) => {
+				console.log(data);
+				kb.go("test",{args:data})
 			})
-		});
+			.catch(error => {
+				console.error(`An Error occured while trying to load page from storage`,error);
+			});
+		// kb.go("test",{args: kb.get("*", { recursive: true})});
+	})
 }
+
+// Load assets then invoke main
+AssetLoader.load()
+	.then(() => {
+		loadPage("mainPage")
+			.then( main() )
+	}) 
+	.catch(error => {
+		console.error("Error Occured while loading Assets.",error);
+	});
