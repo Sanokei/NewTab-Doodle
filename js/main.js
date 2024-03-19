@@ -52,10 +52,10 @@ class Page {
 
 		// set new dictonaries 
 		this.data = new Object();
-		this.gameobjects = new Object();;
+		this.gameobjects = new Object();
 	}
 
-	loadPage(pageName = this.pageName) {
+	loadlocalPage(pageName = this.pageName) {
 		this._checkNameEmpty(pageName)
 		return new Promise((resolve, reject) => {
 			fetch(`${pagesPath}${pageName}.json`)
@@ -77,6 +77,20 @@ class Page {
 		
 	}
 
+	loadStoredPage(pageName = this.pageName) {
+		this._checkNameEmpty(pageName)
+		return new Promise((resolve, reject) => {
+			chrome.storage.local.get(pageName, (result) => {
+				if (chrome.runtime.lastError)
+					reject(chrome.runtime.lastError);
+				console.log("Load",pageName , result.save);
+
+				this.data = result.save;
+				resolve(this);
+			});
+		});
+	}
+
 	/*Instantiate*/
 
 	// Assumes data is already loaded.
@@ -85,7 +99,7 @@ class Page {
 		if(!data)
 		{
 			console.warn("Data is never loaded, or coresponding JSON is empty. Attempting to load page now.");
-			this.loadPage(pageName)
+			this.loadlocalPage(pageName)
 				.then( () => { return this.instantiatePage() }); // makes sure promise is resolved before retrying the block
 		}
 	
@@ -96,6 +110,7 @@ class Page {
 	}
 
 	instantiate(goName,gameobject) {
+		console.log(`Loading... ${goName}:${gameobject}`)
 		this.gameobjects[goName] =
 			kb.make([
 				kb.sprite(gameobject["sprite"]),   // sprite() component makes it render as a sprite
@@ -122,14 +137,14 @@ class Page {
 }
 
 // Loads page by name
-function loadPage(pageName,args = {}) {
+function loadlocalPage(pageName,args = {}) {
 	return new Promise((resolve, reject) => {
 		kb.scene(pageName, (args) => {
 			// Create
 			let page = new Page(pageName);
 	
 			// load
-			page.loadPage()
+			page.loadlocalPage()
 				.then(() => {
 					page.instantiatePage();
 				})
@@ -161,156 +176,79 @@ function saveJSONToStorage(pageJSON, pageName = 'save') {
 
 function loadJSONFromStorage(pageName = 'save') {
 	return new Promise((resolve, reject) => {
-		chrome.storage.local.get(pageName, (result) => {
-			if (chrome.runtime.lastError)
-                reject(chrome.runtime.lastError);
-			console.log("Load",pageName , result.save);
-			resolve(result.save);
+		kb.scene(pageName, (args) => {
+			// Create
+			let page = new Page(pageName);
+	
+			// load
+			page.loadStoredPage()
+				.then(() => {
+					page.instantiatePage();
+				})
+				.then(() => {
+					page.initializeAllGameObj()
+					resolve(page);
+				})
+				.catch(error => {
+					// FIXME: this might become a problem later.
+					console.error(`An Error occured while trying to create or load page ${pageName}`,error);
+					reject(err);
+				});
 		});
 			
+		kb.go(pageName);
 	});
 }
 
-function gameobjectsToJSON(gos) {
-	gos.forEach(elm => {
-		console.log(elm);
-		console.log(elm.id);
-	});
+function gameobjectsToJSON(page) {
+	let gameobjects = new Object();
+	console.log(page.data);
+	for (const [goName, gameobject] of Object.entries(page.data)) {
+		let gos = kb.get(goName)[0];
+		console.log(gos.pos);
+		gameobjects[goName] =
+			{
+				"sprite": gameobject["sprite"],
+				"pos": [gos.pos.x, gos.pos.y],
+				"tags": gameobject["tags"] ?? "",
+				"rotation": gameobject["rotation"] + gos.rotation ?? 0,
+				"anchor": gameobject["anchor"] ?? "center",
+			};
+	}
+	return gameobjects;
 }
 
-kb.scene("test", ({args}) => {
-	console.log(args);
-	args.forEach(elm => {
-		console.log(elm);
-		kb.add(elm);
-	});
-});
-
-function main() {
+function activatePage(page) {
 	kb.onClick("save", (btn) => {
-		var allObj = kb.get("*");
-		gameobjectsToJSON(allObj);
-		saveJSONToStorage(allObj);
+		saveJSONToStorage(gameobjectsToJSON(page));
 	});
 	kb.onClick("load", (btn) => {
 		loadJSONFromStorage()
-			.then((data) => {
-				console.log(data);
-				kb.go("test",{args:data})
-			})
+			.then( (page) => activatePage(page) )
 			.catch(error => {
 				console.error(`An Error occured while trying to load page from storage`,error);
 			});
-		kb.go("test",{args: kb.get("*", { recursive: true})});
+	})
+
+	kb.onClick("confetti", (btn) => {
+		addConfetti();
 	})
 }
 
 // Load assets then invoke main
 AssetLoader.load()
 	.then(() => {
-		loadPage("mainPage")
-			.then( main() )
+		loadlocalPage("mainPage")
+			.then( (page) => activatePage(page) )
+			.catch(error => {
+				console.error(`An Error occured while trying to load main page`,error);
+			});
 	}) 
 	.catch(error => {
 		console.error("Error Occured while loading Assets.",error);
 	});
 
 // Kaboom Custom Components
-
-/* Drag Gameobjects*/
-let curDraggin = null
-/**
- * A custom component for handling drag & drop behavior
- */
-function drag() {
-
-	// The displacement between object pos and mouse pos
-	let offset = kb.vec2(0)
-
-	return {
-		// Name of the component
-		id: "drag",
-		// This component requires the "pos" and "area" component to work
-		require: [ "pos", "area" ],
-		pick() {
-			// Set the current global dragged object to this
-			curDraggin = this
-			offset = kb.mousePos().sub(this.pos)
-			this.trigger("drag")
-		},
-		// "update" is a lifecycle method gets called every frame the obj is in scene
-		update() {
-			if (curDraggin === this) {
-				this.pos = kb.mousePos().sub(offset)
-				this.trigger("dragUpdate")
-			}
-		},
-		onDrag(action) {
-			return this.on("drag", action)
-		},
-		onDragUpdate(action) {
-			return this.on("dragUpdate", action)
-		},
-		onDragEnd(action) {
-			return this.on("dragEnd", action)
-		},
-		inspect() {
-			return `Currently Dragged: ${curDraggin === this}`;
-		},
-	}
-
-}
-
-// 
-kb.onMousePress(() => {
-	if (curDraggin) {
-		return
-	}
-	// Loop all gamobjs in reverse, so we pick the topmost one
-	for (const obj of kb.get("drag").reverse()) {
-		// If mouse is pressed and mouse position is inside, we pick
-		if (obj.isHovering()) {
-			obj.pick()
-			break
-		}
-	}
-})
-
-// Drop whatever is dragged on mouse release
-kb.onMouseRelease(() => {
-	if (curDraggin) {
-		curDraggin.trigger("dragEnd")
-		curDraggin = null
-		kb.setCursor("default")
-	}
-})
-/* Example Usage
-// Add dragable objects
-for (let i = 0; i < 48; i++) {
-
-	const bean = kb.add([
-		kb.sprite("bean"),
-		kb.pos(kb.rand(kb.width()), kb.rand(kb.height())),
-		kb.area({ cursor: "pointer" }),
-		kb.scale(5),
-		kb.anchor("center"),
-		// using our custom component here
-		drag(),
-		i !== 0 ? kb.color(255, 255, 255) : kb.color(255, 0, 255),
-		"bean",
-	])
-
-	bean.onDrag(() => {
-		// Remove the object and re-add it, so it'll be drawn on top
-		kb.readd(bean)
-	})
-
-	bean.onDragUpdate(() => {
-		kb.setCursor("move")
-	})
-
-}
-*/
 
 // Kaboom Custom Functions
 
