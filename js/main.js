@@ -2,6 +2,7 @@
 const kb = kaboom({
 	global: false,
     loadingScreen: false,
+	background: [255, 255, 255],
 });
 
 /* paths */
@@ -202,7 +203,6 @@ function loadJSONFromStorage(pageName = 'save') {
 
 function gameobjectsToJSON(page) {
 	let gameobjects = new Object();
-	console.log(page.data);
 	for (const [goName, gameobject] of Object.entries(page.data)) {
 		let gos = kb.get(goName)[0];
 		console.log(gos.pos);
@@ -218,20 +218,51 @@ function gameobjectsToJSON(page) {
 	return gameobjects;
 }
 
+var doodles = []
+const outline = {
+	width: 4,
+	color: kb.rgb(0, 0, 0),
+}
+function drawStuff() {
+	doodles.forEach((pts) => {
+		kb.drawLines({
+			...outline,
+			pts: pts,
+		})
+	})
+}
+// main
 function activatePage(page) {
 	kb.onClick("save", (btn) => {
-		saveJSONToStorage(gameobjectsToJSON(page));
+		// saveJSONToStorage(gameobjectsToJSON(page));
+
+		// chrome.storage.local.set({'doodles': doodles });
 	});
 	kb.onClick("load", (btn) => {
-		loadJSONFromStorage()
-			.then( (page) => activatePage(page) )
-			.catch(error => {
-				console.error(`An Error occured while trying to load page from storage`,error);
-			});
+		// loadJSONFromStorage()
+		// 	.then( (page) => activatePage(page) )
+		// 	.catch(error => {
+		// 		console.error(`An Error occured while trying to load page from storage`,error);
+		// 	});
+		
+		// doodles = chrome.storage.local.get('doodles');
 	})
 
 	kb.onClick("confetti", (btn) => {
 		addConfetti();
+	})
+	kb.onDraw(() => {
+		drawStuff();
+	});
+
+	kb.onUpdate(() => {
+		if (kb.isMousePressed()) {
+			doodles.push([])
+		}
+		if (kb.isMouseDown() && kb.isMouseMoved()) {
+			doodles[doodles.length - 1].push(kb.mousePos())
+		}
+	
 	})
 }
 

@@ -1,0 +1,14 @@
+{
+    "savebutton":
+    {
+        "sprite":"cube",
+        "pos":[150, 80],
+        "tags":["savebutton","save"]
+    },
+    "loadbutton":
+    {
+        "sprite":"cube",
+        "pos":[250, 80],
+        "tags":["loadbutton","load"]
+    }
+}   

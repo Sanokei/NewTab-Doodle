@@ -1,26 +1,2 @@
 {
-    "darkmode": 
-    {   
-        "sprite":"cube",
-        "pos":[0,0],
-        "tags":["darkmode"]
-    },
-    "searchbar":
-    {
-        "sprite":"cube",
-        "pos":[120, 80],
-        "tags":["searchbar","confetti"]
-    },
-    "savebutton":
-    {
-        "sprite":"cube",
-        "pos":[150, 80],
-        "tags":["savebutton","save"]
-    },
-    "loadbutton":
-    {
-        "sprite":"cube",
-        "pos":[250, 80],
-        "tags":["loadbutton","load"]
-    }
 }   
