@@ -6,3 +6,6 @@
 - go to `chrome://extensions` and press `load unpacked`
     - select the folder
 - open a new tab and doodle!
+
+## demo
+![image](https://github.com/Sanokei/NewTab-Doodle/assets/36809574/abe3a846-73ed-4cb4-8a61-2d890195f888)
