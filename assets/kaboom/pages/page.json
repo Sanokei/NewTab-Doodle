@@ -2,13 +2,21 @@
     "savebutton":
     {
         "sprite":"cube",
+        "area":"true",
         "pos":[150, 80],
         "tags":["savebutton","save"]
     },
     "loadbutton":
     {
         "sprite":"cube",
+        "area":"true",
         "pos":[250, 80],
         "tags":["loadbutton","load"]
+    },
+    "player":
+    {
+        "sprite":"cube",
+        "pos":[250, 50],
+        "tags":["player"]
     }
 }   

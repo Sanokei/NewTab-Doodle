@@ -1,9 +1,120 @@
-// Initialize Kaboom.js
-const kb = kaboom({
+// Initialize KaPlay.js
+const kb = kaplay({
 	global: false,
     loadingScreen: false,
-	background: [255, 255, 255],
+	// background: [0,0,0],
 });
+
+const componentMap = {
+    sprite: (value) => [kb.sprite(value)],
+    pos: (value) => [kb.pos(...value)],
+    rotation: (value) => [kb.rotate(value)],
+    anchor: (value) => [kb.anchor(value)],
+    tags: (value) => value,
+    area: (value) => [kb.area()],
+    agent: (value) => [kb.agent(value)],
+    animate: (value) => [kb.animate(value)],
+    blend: (value) => [kb.blend(value)],
+    body: (value) => [kb.body(value)],
+    buoyancyEffector: (value) => [kb.buoyancyEffector(value)],
+    circle: (value) => [kb.circle(value)],
+    color: (value) => [kb.color(value)],
+    constantForce: (value) => [kb.constantForce(value)],
+    doubleJump: (value) => [kb.doubleJump(value)],
+    drawon: (value) => [kb.drawon(value)],
+    ellipse: (value) => [kb.ellipse(value)],
+    fadeIn: (value) => [kb.fadeIn(value)],
+    fakeMouse: (value) => [kb.fakeMouse(value)],
+    fixed: (value) => [kb.fixed(value)],
+    follow: (value) => [kb.follow(value)],
+    health: (value) => [kb.health(value)],
+    layer: (value) => [kb.layer(value)],
+    lifespan: (value) => [kb.lifespan(value)],
+    mask: (value) => [kb.mask(value)],
+    move: (value) => [kb.move(value)],
+    named: (value) => [kb.named(value)],
+    offscreen: (value) => [kb.offscreen(value)],
+    opacity: (value) => [kb.opacity(value)],
+    outline: (value) => [kb.outline(value)],
+    particles: (value) => [kb.particles(value)],
+    pathfinder: (value) => [kb.pathfinder(value)],
+    patrol: (value) => [kb.patrol(value)],
+    platformEffector: (value) => [kb.platformEffector(value)],
+    pointEffector: (value) => [kb.pointEffector(value)],
+    polygon: (value) => [kb.polygon(value)],
+    raycast: (value) => [kb.raycast(value)],
+    rect: (value) => [kb.rect(value)],
+    scale: (value) => [kb.scale(value)],
+    sentry: (value) => [kb.sentry(value)],
+    serializeAnimation: (value) => [kb.serializeAnimation(value)],
+    shader: (value) => [kb.shader(value)],
+    state: (value) => [kb.state(value)],
+    stay: (value) => [kb.stay(value)],
+    surfaceEffector: (value) => [kb.surfaceEffector(value)],
+    text: (value) => [kb.text(value)],
+    textInput: (value) => [kb.textInput(value)],
+    tile: (value) => [kb.tile(value)],
+    timer: (value) => [kb.timer(value)],
+    usesArea: (value) => [kb.usesArea(value)],
+    uvquad: (value) => [kb.uvquad(value)],
+    z: (value) => [kb.z(value)],
+};
+
+const serializeMap = {
+    sprite: (gos) => ({ sprite: gos.sprite }),
+    pos: (gos) => ({ pos: [gos.pos.x, gos.pos.y] }),
+    rotation: (gos) => ({ rotation: gos.angle }),
+    anchor: (gos) => ({ anchor: gos.anchor }),
+    tags: (gos) => ({ tags: gos.tags }),
+    // area: (gos) => ({ area: { shape: gos.area.shape } }), // currently only Rect and Polygon is supported
+    area: (gos) => ({ area: gos.area }),
+    agent: (gos) => ({ agent: gos.agent }),
+    animate: (gos) => ({ animate: gos.animate }),
+    blend: (gos) => ({ blend: gos.blend }),
+    body: (gos) => ({ body: gos.body }),
+    buoyancyEffector: (gos) => ({ buoyancyEffector: gos.buoyancyEffector }),
+    circle: (gos) => ({ circle: gos.circle }),
+    color: (gos) => ({ color: gos.color }),
+    constantForce: (gos) => ({ constantForce: gos.constantForce }),
+    doubleJump: (gos) => ({ doubleJump: gos.doubleJump }),
+    drawon: (gos) => ({ drawon: gos.drawon }),
+    ellipse: (gos) => ({ ellipse: gos.ellipse }),
+    fadeIn: (gos) => ({ fadeIn: gos.fadeIn }),
+    fakeMouse: (gos) => ({ fakeMouse: gos.fakeMouse }),
+    fixed: (gos) => ({ fixed: gos.fixed }),
+    follow: (gos) => ({ follow: gos.follow }),
+    health: (gos) => ({ health: gos.health }),
+    layer: (gos) => ({ layer: gos.layer }),
+    lifespan: (gos) => ({ lifespan: gos.lifespan }),
+    mask: (gos) => ({ mask: gos.mask }),
+    move: (gos) => ({ move: gos.move }),
+    named: (gos) => ({ named: gos.named }),
+    offscreen: (gos) => ({ offscreen: gos.offscreen }),
+    opacity: (gos) => ({ opacity: gos.opacity }),
+    outline: (gos) => ({ outline: gos.outline }),
+    particles: (gos) => ({ particles: gos.particles }),
+    pathfinder: (gos) => ({ pathfinder: gos.pathfinder }),
+    patrol: (gos) => ({ patrol: gos.patrol }),
+    platformEffector: (gos) => ({ platformEffector: gos.platformEffector }),
+    pointEffector: (gos) => ({ pointEffector: gos.pointEffector }),
+    polygon: (gos) => ({ polygon: gos.polygon }),
+    raycast: (gos) => ({ raycast: gos.raycast }),
+    rect: (gos) => ({ rect: gos.rect }),
+    scale: (gos) => ({ scale: gos.scale }),
+    sentry: (gos) => ({ sentry: gos.sentry }),
+    serializeAnimation: (gos) => ({ serializeAnimation: gos.serializeAnimation }),
+    shader: (gos) => ({ shader: gos.shader }),
+    state: (gos) => ({ state: gos.state }),
+    stay: (gos) => ({ stay: gos.stay }),
+    surfaceEffector: (gos) => ({ surfaceEffector: gos.surfaceEffector }),
+    text: (gos) => ({ text: gos.text }),
+    textInput: (gos) => ({ textInput: gos.textInput }),
+    tile: (gos) => ({ tile: gos.tile }),
+    timer: (gos) => ({ timer: gos.timer }),
+    usesArea: (gos) => ({ usesArea: gos.usesArea }),
+    uvquad: (gos) => ({ uvquad: gos.uvquad }),
+    z: (gos) => ({ z: gos.z }),
+};
 
 /* paths */
 const assetPath = "../assets/kaboom/";
@@ -54,6 +165,7 @@ class Page {
 		// set new dictonaries 
 		this.data = new Object();
 		this.gameobjects = new Object();
+        this.componentKeys = {};
 	}
 
 	loadlocalPage(pageName = this.pageName) {
@@ -110,18 +222,21 @@ class Page {
 		return this;
 	}
 
-	instantiate(goName,gameobject) {
-		console.log(`Loading... ${goName}:${gameobject}`)
-		this.gameobjects[goName] =
-			kb.make([
-				kb.sprite(gameobject["sprite"]),   // sprite() component makes it render as a sprite
-				kb.pos(gameobject["pos"]),     // pos() component gives it position, also enables movement
-				kb.area(),
-				...gameobject["tags"] ?? "",	// Tags
-				kb.rotate(gameobject["rotation"] ?? 0),        // rotate() component gives it rotation
-				kb.anchor(gameobject["anchor"] ?? "center"), // anchor() component defines the pivot point (defaults to "topleft")
-			]);
-	}
+	instantiate(goName, gameobject) {
+        const components = [];
+        const keysUsed = [];
+        for (const [key, value] of Object.entries(gameobject)) {
+            if (componentMap[key]) {
+                const componentParts = componentMap[key](value);
+                components.push(...componentParts);
+                keysUsed.push(key);
+            } else {
+                console.warn(`Unknown component key '${key}' for ${goName}`);
+            }
+        }
+        this.gameobjects[goName] = kb.make(components);
+        this.componentKeys[goName] = keysUsed;
+    }
 
 	/*Initialize*/
 
@@ -202,74 +317,51 @@ function loadJSONFromStorage(pageName = 'save') {
 }
 
 function gameobjectsToJSON(page) {
-	let gameobjects = new Object();
-	for (const [goName, gameobject] of Object.entries(page.data)) {
-		let gos = kb.get(goName)[0];
-		console.log(gos.pos);
-		gameobjects[goName] =
-			{
-				"sprite": gameobject["sprite"],
-				"pos": [gos.pos.x, gos.pos.y],
-				"tags": gameobject["tags"] ?? "",
-				"rotation": gameobject["rotation"] + gos.rotation ?? 0,
-				"anchor": gameobject["anchor"] ?? "center",
-			};
-	}
-	return gameobjects;
+    const savedData = {};
+    for (const [goName, gameobjectData] of Object.entries(page.data)) {
+        const gos = kb.get(goName)[0];
+        const components = {};
+        for (const key of page.componentKeys[goName] || []) {
+            if (serializeMap[key]) {
+                Object.assign(components, serializeMap[key](gos));
+            }
+        }
+        savedData[goName] = components;
+    }
+    return savedData;
 }
 
-var doodles = []
-const outline = {
-	width: 4,
-	color: kb.rgb(0, 0, 0),
-}
-function drawStuff() {
-	doodles.forEach((pts) => {
-		kb.drawLines({
-			...outline,
-			pts: pts,
-		})
-	})
-}
 // main
 function activatePage(page) {
 	kb.onClick("save", (btn) => {
-		// saveJSONToStorage(gameobjectsToJSON(page));
-
-		// chrome.storage.local.set({'doodles': doodles });
+		saveJSONToStorage(gameobjectsToJSON(page));
 	});
 	kb.onClick("load", (btn) => {
-		// loadJSONFromStorage()
-		// 	.then( (page) => activatePage(page) )
-		// 	.catch(error => {
-		// 		console.error(`An Error occured while trying to load page from storage`,error);
-		// 	});
-		
-		// doodles = chrome.storage.local.get('doodles');
+		loadJSONFromStorage()
+			.then( (page) => activatePage(page) )
+			.catch(error => {
+				console.error(`An Error occured while trying to load page from storage`,error);
+			});
 	})
 
-	kb.onClick("confetti", (btn) => {
-		addConfetti();
-	})
-	kb.onDraw(() => {
-		drawStuff();
-	});
-
-	kb.onUpdate(() => {
-		if (kb.isMousePressed()) {
-			doodles.push([])
-		}
-		if (kb.isMouseDown() && kb.isMouseMoved()) {
-			doodles[doodles.length - 1].push(kb.mousePos())
-		}
-	
-	})
+    const dirs = {
+        "left": kb.vec2(-1, 0),
+        "right": kb.vec2(1, 0),
+        "up": kb.vec2(0, -1),
+        "down": kb.vec2(0, 1),
+    };
+    const SPEED = 320;
+    for (const dir in dirs) {
+        kb.onKeyDown(dir, () => {
+            kb.get("player")[0].move(dirs[dir].scale(SPEED));
+        });
+    }
 }
 
 // Load assets then invoke main
 AssetLoader.load()
 	.then(() => {
-		loadlocalPage("mainPage")
+		loadlocalPage("page")
 			.then( (page) => activatePage(page) )
 			.catch(error => {
 				console.error(`An Error occured while trying to load main page`,error);

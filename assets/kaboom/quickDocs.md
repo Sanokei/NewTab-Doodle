@@ -9,7 +9,7 @@ Loaded assets can be used in a page.
     // ...
     // FIXME: it may become an issue later that the name has to be unique.
     "name": { // must be unique. This is the gameobject name.
-        "sprite":"name", // must be unique
+        "sprite":"name",
         "pos":[0,0],
         "tags":["tag","tag1"] // add tags
     }
